@@ -38,7 +38,8 @@ var _ = require('underscore');
 var opts = require('stdio').getopt({
     'port': {key: 'p', args: 1, description: 'HTTP Listener Bind Port'},
     'secure': {key: 's', description: 'Enable SSL and Security'},
-    'standalone': {description: 'Standalone Server (no web application)'}
+    'standalone': {description: 'Standalone Server (no web application)'},
+    'webappdir': {key: 'd', args: 1, description: 'Your applications webapp directory', mandatory: true}
 });
 
 if (opts.standalone === true) {
@@ -80,7 +81,7 @@ var baseRoutes = {
             if (opts.standalone) {
                 res.send('<h2>Workshop Node Server is in Standalone mode</h2>');
             } else {
-                res.sendfile('../webapp/index.html');
+                res.sendfile(opts.webappdir + '/index.html');
             }
         }],
         '/index.html': [security.secureStatic, function(req, res) {
@@ -90,7 +91,7 @@ var baseRoutes = {
             if (opts.standalone) {
                 res.redirect('/');
             } else {
-                res.sendfile('../webapp/login.html');
+                res.sendfile(opts.webappdir + '/login.html');
             }
         },
         '/login.html': function(req, res) {
@@ -100,7 +101,7 @@ var baseRoutes = {
             if (opts.standalone) {
                 res.redirect('/');
             } else {
-                res.sendfile('../webapp/register.html');
+                res.sendfile(opts.webappdir + '/register.html');
             }
         },
         '/register.html': function(req, res) {
@@ -168,7 +169,7 @@ addRoutes(baseRoutes);
 addRoutes(restaurantServiceRoutes);
 addRoutes(reservationServiceRoutes);
 
-app.use(express.static(__dirname + '/../webapp'));
+app.use(express.static(opts.webappdir));
 
 // enable a database reset with a get request
 app.get('/reset', function(req, res) {
