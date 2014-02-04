@@ -57,15 +57,15 @@ if (opts.secure === true) {
 var NEDB = require('nedb');
 var db = {};
 db.restaurants = new NEDB({
-    filename: './data/restaurants.db',
+    filename: __dirname + '/data/restaurants.db',
     autoload: true
 });
 db.reservations = new NEDB({
-    filename: './data/reservations.db',
+    filename: __dirname + '/data/reservations.db',
     autoload: true
 });
 db.users = new NEDB({
-    filename: './data/users.db',
+    filename: __dirname + '/data/users.db',
     autoload: true
 });
 global.db = db;

@@ -33,15 +33,15 @@ if (!db) {
     var DB = require('nedb');
     db = {};
     db.restaurants = new DB({
-        filename: './server/restaurants.db',
+        filename: __dirname + '/data/restaurants.db',
         autoload: true
     });
     db.reservations = new DB({
-        filename: './server/reservations.db',
+        filename: __dirname + '/data/reservations.db',
         autoload: true
     });
     db.users = new DB({
-        filename: './server/users.db',
+        filename: __dirname + '/data/users.db',
         autoload: true
     });
 }
