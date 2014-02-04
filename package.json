@@ -1,0 +1,13 @@
+{
+    "name": "nodeserver",
+    "description": "Node Rest Server",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "express": "3.4.7",
+        "underscore": "1.5.2",
+        "stdio": "0.1.4",
+        "nedb": "0.9.4",
+        "crypto": "0.0.3"
+    }
+}
