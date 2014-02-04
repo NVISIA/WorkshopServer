@@ -1,5 +1,5 @@
 {
-    "name": "nodeserver",
+    "name": "workshop-server",
     "description": "Node Rest Server",
     "version": "0.0.1",
     "private": true,
