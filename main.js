@@ -192,8 +192,8 @@ if (opts.secure === true) {
     }).listen(port);
 
     https.createServer({
-        key: fs.readFileSync('server/rsa.pem'),
-        cert: fs.readFileSync('server/cert.pem')
+        key: fs.readFileSync(__dirname + '/rsa.pem'),
+        cert: fs.readFileSync(__dirname + '/cert.pem')
     }, app).listen(securePort);
     
     console.log('Listening on ports ' + port + ' and ' + securePort);
