@@ -39,7 +39,7 @@ var opts = require('stdio').getopt({
     'port': {key: 'p', args: 1, description: 'HTTP Listener Bind Port'},
     'secure': {key: 's', description: 'Enable SSL and Security'},
     'standalone': {description: 'Standalone Server (no web application)'},
-    'webappdir': {key: 'd', args: 1, description: 'Your applications webapp directory', mandatory: true}
+    'webappdir': {key: 'd', args: 1, description: 'Your application\'s webapp directory'}
 });
 
 if (opts.standalone === true) {
