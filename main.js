@@ -118,7 +118,8 @@ var baseRoutes = {
 var restaurantServiceRoutes = {
     'get': {
         '/restaurants': [security.secureService, restaurantService.getRestaurants],
-        '/restaurants/:id': [security.secureService, restaurantService.getRestaurant]
+        '/restaurants/:id': [security.secureService, restaurantService.getRestaurant],
+        '/restaurants/:id/reservations': [security.secureService, restaurantService,getReservations]
     },
     'put': {
         '/restaurants': [security.secureService, restaurantService.saveRestaurant],
