@@ -23,16 +23,23 @@
  */
 
 var dao = require('./dao.js');
+var util = require('./util.js');
 var _ = require('underscore');
 
-exports.getReservations = function(req, res) {
-    var id = req.params.id;
+exports.getReservation = function(req, res) {
+    dao.getReservation(req.params.id, util.createResponseHandler(res,
+        function (reservation) {
+            res.send(reservation);
+        }
+    ));
+};
 
-    if (id === undefined) {
-        dao.getReservationList(res);
-    } else {
-        dao.getReservation(res, id);
-    }
+exports.getReservations = function(req, res) {
+    dao.getReservationList(req.query, util.createResponseHandler(res,
+        function (reservations) {
+            res.send(reservations);
+        }
+    ));
 };
 
 exports.saveReservation = function(req, res) {
@@ -40,11 +47,13 @@ exports.saveReservation = function(req, res) {
     var reservation = req.body;
     reservation.id = id;
 
-    dao[id === undefined ? 'createReservation' : 'updateReservation'](res, reservation);
+    dao[id === undefined ? 'createReservation' : 'updateReservation'](reservation, util.createResponseHandler(res,
+        function(reservation) {
+            res.send(reservation);
+        }
+    ));
 };
 
 exports.deleteReservation = function(req, res) {
-    var id = req.params.id;
-
-    dao.deleteReservation(res, id);
+    dao.deleteReservation(req.params.id, util.createResponseHandler(res, function() { res.send(200); }));
 };

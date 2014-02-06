@@ -28,37 +28,43 @@
 
 var dao = require('./dao.js');
 var _ = require('underscore');
+var util = require('./util.js');
+
+exports.getRestaurant = function(req, res) {
+    dao.getRestaurant(req.params.id, util.createResponseHandler(res,
+        function(restaurant) {
+            res.send(restaurant);
+        }
+    ));
+};
 
 exports.getRestaurants = function(req, res) {
-    var id = req.params.id;
-
-    if (id === undefined) {
-        dao.getRestaurantList(res);
-    } else {
-        dao.getRestaurant(res, id);
-    }
+    dao.getRestaurantList(util.createResponseHandler(res,
+        function(restaurants) {
+            res.send(restaurants);
+        }
+    ));
 };
 
 exports.saveRestaurant = function(req, res) {
-    var id = req.params.id;
-    var restaurant = req.body;
-
-    if (id === undefined) {
-        dao.createRestaurant(res, restaurant);
-    } else {
-        restaurant.id = id;
-        dao.updateRestaurant(res, restaurant);
-    }
+    dao[req.params.id === undefined ? 'createRestaurant' : 'updateRestaurant'](req.body, util.createResponseHandler(res,
+        function(restaurant) {
+            res.send(restaurant);
+        }
+    ));
 };
 
 exports.deleteRestaurant = function(req, res) {
-    var id = req.params.id;
-
-    dao.deleteRestaurant(res, id);
+    dao.deleteRestaurant(req.params.id, util.createResponseHandler(res, function() { res.send(200); }));
 };
 
-exports.getReservations = function(req, res) {
-    var id = req.params.id;
-
-    dao.getReservationList(res, id);
+exports.getReservations_NonStandard = function(req, res) {
+    req.query.restaurantId = req.params.id;
+    dao.getReservationList({
+        restaurantId: req.params.id
+    }, util.createResponseHandler(res,
+        function(reservations) {
+            res.send(reservations);
+        }
+    ));
 }

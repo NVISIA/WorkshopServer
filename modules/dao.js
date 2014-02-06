@@ -48,15 +48,20 @@ var Reservation = function(json) {
 };
 exports.Reservation = Reservation;
 
+var stripTime = function(date) {
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    return date;
+};
+
 var validReservationTimes = (function() {
     var arr = [];
-    var start = new Date();
+    var start = stripTime(new Date());
     start.setHours(16);
-    start.setMinutes(0);
-    start.setSeconds(0);
-    start.setMilliseconds(0);
 
-    var stop = new Date(start.getTime());
+    var stop = stripTime(new Date());
     stop.setHours(22);
 
     while (start.getTime() <= stop.getTime()) {
@@ -68,89 +73,98 @@ var validReservationTimes = (function() {
     return arr;
 })();
 
-exports.getRestaurantList = function(res) {
+exports.getRestaurantList = function(handler) {
     db.restaurants.find({}, function(err, docs) {
         _.each(docs, function(doc) {
             doc.id = doc._id;
         });
-        res.send(docs);
+        handler(err, docs);
     });
 };
 
-exports.getRestaurant = function(res, id) {
+exports.getRestaurant = function(id, handler) {
     db.restaurants.findOne({ _id: id }, function(err, doc) {
         if (doc) doc.id = doc._id;
-        res.send(doc || undefined);
+        handler(err, doc);
     });
 };
 
-exports.createRestaurant = function(res, json) {
+exports.createRestaurant = function(json, handler) {
     var restaurant = new Restaurant(json);
-    db.restaurants.insert(restaurant, function(err, created) {
-        created.id = created._id;
-        res.send(created);
+    db.restaurants.insert(restaurant, function(err, doc) {
+        doc.id = doc._id;
+        handler(err, doc);
     });
 };
 
-exports.updateRestaurant = function(res, json) {
+exports.updateRestaurant = function(json, handler) {
     var restaurant = new Restaurant(json);
     db.restaurants.update({ _id: restaurant.id }, {
         $set: restaurant
-    }, function() {
-        db.restaurants.findOne({ _id: restaurant.id }, function(err, doc) {
-            if (doc) doc.id = doc._id;
-            res.send(doc || undefined);
-        });
+    }, {}, function(err, num, doc) {
+        if (doc) doc.id = doc._id;
+        handler(err, doc);
     });
 };
 
-exports.deleteRestaurant = function(res, id) {
-    db.restaurants.remove({ _id : id});
-    res.send("Restaurant " + id + " deleted");
+exports.deleteRestaurant = function(id, handler) {
+    db.restaurants.remove({ _id : id }, {}, handler);
 };
 
-exports.getReservationList = function(res, id) {
-    db.reservations.find({ restaurantId: id}, function(err, docs) {
-        var available = _.difference(validReservationTimes, _.pluck(docs, "time"));
-        _.each(docs, function(doc) {
-            doc.id = doc._id;
-        });
-        res.send({
-            reservations: docs,
-            available: available
-        });
-    });
-};
-
-exports.getReservation = function(res, id) {
+exports.getReservation = function(id, handler) {
     db.reservations.findOne({ _id: id }, function(err, doc) {
         if (doc) doc.id = doc._id;
-        res.send(doc || undefined);
+        handler(err, doc);
     });
 };
 
-exports.createReservation = function(res, json) {
+exports.getReservationList = function(query, handler) {
+    if (!query.restaurantId) {
+        handler("Restaurant Id is required when performing a reservation search!");
+    }
+    var criteria = {
+        restaurantId: query.restaurantId
+    };
+    var date = stripTime(query.date ? new Date(query.date * 1) : new Date());
+    criteria.time = {
+        "$gte": date.getTime(),
+        "$lt": date.setHours(24)
+    };
+
+    db.reservations.find(criteria).sort({ time: 1 }).exec(function(err, docs) {
+        var result = [];
+        _.each(validReservationTimes, function(time) {
+            var reservation = _.find(docs, function(r) { return (r.time === time); });
+            result.push({
+                time: time,
+                reservationId: reservation ? reservation._id : null,
+                restaurantId: query.restaurantId
+            });
+        });
+
+        handler(err, result);
+    });
+};
+
+exports.createReservation = function(json, handler) {
     var reservation = new Reservation(json);
     db.reservations.insert(reservation, function(err, doc) {
         if (doc) doc.id = doc._id;
-        res.send(doc || undefined);
+        handler(err, doc);
     });
 }
 
-exports.updateReservation = function(res, json) {
+exports.updateReservation = function(json, handler) {
     var reservation = new Reservation(json);
 
     db.reservations.update({ _id: reservation.id }, {
         $set: reservation
-    }, function() {
-        db.reservations.findOne({ _id: reservation.id }, function(err, doc) {
-            if (doc) doc.id = doc._id;
-            res.send(doc || undefined);
-        });
+    }, {}, function(err, num, doc) {
+        if (doc) doc.id = doc._id;
+        handler(err, doc);
     });
 };
 
-exports.deleteReservation = function(res, id) {
-    db.reservations.remove({ _id: id });
-    res.send("Reservation " + id + " deleted");
+exports.deleteReservation = function(id, handler) {
+    db.reservations.remove({ _id : id }, {}, handler);
 };

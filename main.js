@@ -118,8 +118,7 @@ var baseRoutes = {
 var restaurantServiceRoutes = {
     'get': {
         '/restaurants': [security.secureService, restaurantService.getRestaurants],
-        '/restaurants/:id': [security.secureService, restaurantService.getRestaurants],
-        '/restaurants/:id/reservations': [security.secureService, restaurantService.getReservations]
+        '/restaurants/:id': [security.secureService, restaurantService.getRestaurant]
     },
     'put': {
         '/restaurants': [security.secureService, restaurantService.saveRestaurant],
@@ -135,7 +134,8 @@ var restaurantServiceRoutes = {
 };
 var reservationServiceRoutes = {
     'get': {
-        '/reservations/:id': [security.secureService, reservationService.getReservations]
+        '/reservations/:id': [security.secureService, reservationService.getReservation],
+        '/reservations/': [security.secureService, reservationService.getReservations]
     },
     'put': {
         '/reservations': [security.secureService, reservationService.saveReservation],
@@ -169,7 +169,9 @@ addRoutes(baseRoutes);
 addRoutes(restaurantServiceRoutes);
 addRoutes(reservationServiceRoutes);
 
-app.use(express.static(opts.webappdir));
+if (!opts.standalone) {
+    app.use(express.static(opts.webappdir));
+}
 
 // enable a database reset with a get request
 app.get('/reset', function(req, res) {
