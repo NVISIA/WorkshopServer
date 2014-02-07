@@ -35,7 +35,7 @@ var app = express();
 var _ = require('underscore');
 
 // parse command line options
-var opts = require('stdio').getopt({
+var opts = global.test_mode === true ? { standalone: true } : require('stdio').getopt({
     'port': {key: 'p', args: 1, description: 'HTTP Listener Bind Port'},
     'secure': {key: 's', description: 'Enable SSL and Security'},
     'standalone': {description: 'Standalone Server (no web application)'},
@@ -56,16 +56,17 @@ if (opts.secure === true) {
 // connect to the data store needed for this application
 var NEDB = require('nedb');
 var db = {};
+var db_path = (global.test_mode === true ? '/data/test/' : '/data/');
 db.restaurants = new NEDB({
-    filename: __dirname + '/data/restaurants.db',
+    filename: __dirname + db_path + 'restaurants.db',
     autoload: true
 });
 db.reservations = new NEDB({
-    filename: __dirname + '/data/reservations.db',
+    filename: __dirname + db_path + 'reservations.db',
     autoload: true
 });
 db.users = new NEDB({
-    filename: __dirname + '/data/users.db',
+    filename: __dirname + db_path + 'users.db',
     autoload: true
 });
 global.db = db;
@@ -201,6 +202,7 @@ if (opts.secure === true) {
     
     console.log('Listening on ports ' + port + ' and ' + securePort);
 } else {
-    app.listen(port);
+    // expose the server for testing purposes
+    exports.server = http.createServer(app).listen(port);
     console.log('Listening on port ' + port);
 }

@@ -56,12 +56,12 @@ var stripTime = function(date) {
     return date;
 };
 
-var validReservationTimes = (function() {
+var getValidReservationTimes = function(date) {
     var arr = [];
-    var start = stripTime(new Date());
+    var start = stripTime(new Date(date));
     start.setHours(16);
 
-    var stop = stripTime(new Date());
+    var stop = stripTime(new Date(date));
     stop.setHours(22);
 
     while (start.getTime() <= stop.getTime()) {
@@ -71,7 +71,7 @@ var validReservationTimes = (function() {
     }
 
     return arr;
-})();
+};
 
 exports.getRestaurantList = function(handler) {
     db.restaurants.find({}, function(err, docs) {
@@ -101,9 +101,13 @@ exports.updateRestaurant = function(json, handler) {
     var restaurant = new Restaurant(json);
     db.restaurants.update({ _id: restaurant.id }, {
         $set: restaurant
-    }, {}, function(err, num, doc) {
-        if (doc) doc.id = doc._id;
-        handler(err, doc);
+    }, {}, function(err, num) {
+        if (err) {
+            handler(err);
+        }
+        else {
+            exports.getRestaurant(restaurant.id, handler);
+        }
     });
 };
 
@@ -122,18 +126,22 @@ exports.getReservationList = function(query, handler) {
     if (!query.restaurantId) {
         handler("Restaurant Id is required when performing a reservation search!");
     }
-    var criteria = {
-        restaurantId: query.restaurantId
-    };
     var date = stripTime(query.date ? new Date(query.date * 1) : new Date());
-    criteria.time = {
-        "$gte": date.getTime(),
-        "$lt": date.setHours(24)
+    var range = {
+        from: date.getTime(),
+        to: new Date(date).setHours(24)
+    }
+    var criteria = {
+        restaurantId: query.restaurantId,
+        time: {
+            $gte: range.from,
+            $lt: range.to
+        }
     };
 
     db.reservations.find(criteria).sort({ time: 1 }).exec(function(err, docs) {
         var result = [];
-        _.each(validReservationTimes, function(time) {
+        _.each(getValidReservationTimes(date), function(time) {
             var reservation = _.find(docs, function(r) { return (r.time === time); });
             result.push({
                 time: time,
@@ -159,9 +167,13 @@ exports.updateReservation = function(json, handler) {
 
     db.reservations.update({ _id: reservation.id }, {
         $set: reservation
-    }, {}, function(err, num, doc) {
-        if (doc) doc.id = doc._id;
-        handler(err, doc);
+    }, {}, function(err, num) {
+        if (err) {
+            handler(err);
+        }
+        else {
+            exports.getReservation(reservation.id, handler);
+        }
     });
 };
 
