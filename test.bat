@@ -1,5 +1,7 @@
-# install node dependencies
-npm install
+echo off
 
-# run the tests
-node ./node_modules/jasmine-node/bin/jasmine-node --color spec
+rem Install node dependencies locally
+call npm install
+
+rem run the tests
+call node ./node_modules/jasmine-node/bin/jasmine-node --color spec
